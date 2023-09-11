@@ -70,13 +70,12 @@ suite("Functional Tests", function () {
 const Browser = require("zombie");
 Browser.site = "https://boilerplate-mochachai-production.up.railway.app/";
 
-const browser = new Browser();
-suiteSetup(function (done) {
-  return browser.visit("/", done);
-});
 suite("Functional Tests with Zombie.js", function () {
   this.timeout(5000);
-
+  const browser = new Browser();
+  suiteSetup(function (done) {
+    return browser.visit("/", done);
+  });
   suite("Headless browser", function () {
     test('should have a working "site" property', function () {
       assert.isNotNull(browser.site);
@@ -86,16 +85,40 @@ suite("Functional Tests with Zombie.js", function () {
   suite('"Famous Italian Explorers" form', function () {
     // #5
     test('Submit the surname "Colombo" in the HTML form', function (done) {
-      assert.equal(res.body.name, "Cristoforo");
-      assert.equal(res.body.surname, "Colombo");
-
-      done();
-    });
-    // #6
-    test('Submit the surname "Vespucci" in the HTML form', function (done) {
-      assert.equal(res.body.name, "Amerigo");
+      chai
+        .request(browser.site)
+        .keepOpen()
+        .put("/travellers")
+        .send({ surname: "Colombo" })
+        .end(function (err, res) {
+          assert.equal(res.status, 200, "response status should be 200");
+          assert.equal(res.type, "application/json", "Response should be json");
+        });
+      assert.equal(
+        res.body.surname,
+        "Colombo",
+        'res.body.surname should be "Colombo"'
+      );
 
       done();
     });
   });
+});
+// #6
+test('Submit the surname "Vespucci" in the HTML form', function (done) {
+  chai
+    .request(browser.site)
+    .keepOpen()
+    .put("/travellers")
+    .send({ surname: "Vespucci" })
+    .end(function (err, res) {
+      assert.equal(res.status, 200, "response status should be 200");
+      assert.equal(res.type, "application/json", "Response should be json");
+    });
+  assert.equal(
+    res.body.surname,
+    "Vespucci",
+    'res.body.surname should be "Vespucci"'
+  );
+  done();
 });
